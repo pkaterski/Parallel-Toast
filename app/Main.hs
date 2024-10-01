@@ -1,7 +1,4 @@
-
-
 module Main (main) where
---{-# LANGUAGE OverloadedStrings #-}
 
 import Data.Conduit
 import qualified Data.Conduit.Combinators as C
