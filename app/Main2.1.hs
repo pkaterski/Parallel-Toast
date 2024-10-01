@@ -1,4 +1,4 @@
-module Main (main) where
+module Main21 (main) where
 
 import Data.Conduit
 import qualified Data.Conduit.Combinators as C
