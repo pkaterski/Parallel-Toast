@@ -12,7 +12,9 @@ import Control.Monad.Trans.Resource (ResourceT)
 data Operation = Add | Subtract | Multiply | Divide
     deriving Show
 
-applyOperation :: Operation -> Double -> Double -> Either String Double
+type Result = Either String Double
+
+applyOperation :: Operation -> Double -> Double -> Result
 applyOperation op x y = case op of
     Add      -> pure $ x + y
     Subtract -> pure $ x - y
@@ -29,23 +31,24 @@ parseNumber txt = case TR.double txt of
     Right (num, _) -> pure num
     Left err       -> fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: " ++ err
 
-processNumbers :: ConduitT Double Void (ResourceT IO) Double
+processNumbers :: ConduitT Double Void (ResourceT IO) Result
 processNumbers = do
     mFirstNum <- await
     case mFirstNum of
-        Nothing       -> fail "No numbers in input file."
+        Nothing       -> pure $ Left "No numbers in input file."
         Just firstNum -> processRest firstNum operations
 
-processRest :: Double -> [Operation] -> ConduitT Double Void (ResourceT IO) Double
-processRest _ [] = fail "Ran out of operations."
+processRest :: Double -> [Operation] -> ConduitT Double Void (ResourceT IO) Result
+processRest _ [] = pure $ Left "Ran out of operations."
 processRest acc ops = do
     mNextNum <- await
     case mNextNum of
-        Nothing  -> pure acc
+        Nothing  -> pure $ Right acc
         Just num -> do
             let (op:ops') = ops
-            acc' <- either fail pure $ applyOperation op acc num
-            processRest acc' ops'
+            case applyOperation op acc num of
+                e@(Left _) -> pure e
+                Right acc' -> processRest acc' ops'
 
 main :: IO ()
 main = do
@@ -53,7 +56,6 @@ main = do
     case args of
         [_, inputFile, outputFile] -> processFiles inputFile outputFile
         _                          -> putStrLn "Usage: program inputFile outputFile"
-    putStrLn "Done."
 
 processFiles :: FilePath -> FilePath -> IO ()
 processFiles inputFile outputFile = do
@@ -63,6 +65,10 @@ processFiles inputFile outputFile = do
         .| C.concatMap T.words
         .| C.mapM parseNumber
         .| processNumbers
-    writeFile outputFile (show result)
+    case result of
+        Left err -> putStrLn $ "[ERROR] " ++ err
+        Right n  -> do
+            writeFile outputFile (show n)
+            putStrLn "Done."
 
 
