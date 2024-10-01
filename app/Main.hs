@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main (main) where
 
 import Data.Conduit
@@ -8,6 +10,7 @@ import qualified Data.Text.Read as TR
 import System.Environment (getArgs)
 import Control.Monad.IO.Class()
 import Control.Monad.Trans.Resource (ResourceT)
+import System.IO.Unsafe (unsafePerformIO)
 
 data Operation = Add | Subtract | Multiply | Divide
     deriving Show
@@ -57,12 +60,41 @@ main = do
         [_, inputFile, outputFile] -> processFiles inputFile outputFile
         _                          -> putStrLn "Usage: program inputFile outputFile"
 
+popLast :: [a] -> ([a], Maybe a)
+popLast []     = ([], Nothing)
+popLast (x:[]) = ([], Just x)
+popLast (x:xs) = ((x:xs'), l)
+    where
+        (xs', l) = popLast xs
+
+-- first arg is a leftover from the previous stream
+parseWords :: Monad m => Maybe T.Text -> ConduitT T.Text T.Text m ()
+parseWords (Just l) = do
+    str <- await
+    case str of
+        Just s -> do
+            let (ws, l') = popLast $ T.words $ l <> s
+            C.yieldMany ws
+            parseWords l'
+        Nothing -> do
+            yield l
+            pure ()
+parseWords Nothing = do
+    str <- await
+    case str of
+        Just s -> do
+            let (ws, l') = popLast $ T.words s
+            C.yieldMany ws
+            parseWords l'
+        Nothing -> pure ()
+
 processFiles :: FilePath -> FilePath -> IO ()
 processFiles inputFile outputFile = do
     result <- runConduitRes $
         C.sourceFile inputFile
         .| CT.decodeUtf8
-        .| C.concatMap T.words
+        -- .| C.concatMap T.words  -- might have problems in edge cases, so next function solves them
+        .| parseWords Nothing
         .| C.mapM parseNumber
         .| processNumbers
     case result of
