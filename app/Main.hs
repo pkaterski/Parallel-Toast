@@ -15,13 +15,13 @@ import Control.Monad.Trans.Resource (ResourceT)
 data Operation = Add | Subtract | Multiply | Divide
     deriving Show
 
-applyOperation :: MonadFail m => Operation -> Double -> Double -> m Double
+applyOperation :: Operation -> Double -> Double -> Either String Double
 applyOperation op x y = case op of
     Add      -> pure $ x + y
     Subtract -> pure $ x - y
     Multiply -> pure $ x * y
     Divide   -> if y == 0
-                then fail "Division by zero"
+                then Left "Division by zero"
                 else pure $ x / y
 
 operations :: [Operation]
@@ -47,7 +47,7 @@ processRest acc ops = do
         Nothing  -> pure acc
         Just num -> do
             let (op:ops') = ops
-            acc' <- applyOperation op acc num
+            acc' <- either fail pure $ applyOperation op acc num
             processRest acc' ops'
 
 main :: IO ()
