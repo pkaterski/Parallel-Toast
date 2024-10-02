@@ -3,6 +3,7 @@
 module Main (main) where
 
 import Types
+import Config
 import Data.Conduit
 import qualified Data.Conduit.Combinators as C
 import qualified Data.Conduit.Text as CT
@@ -15,17 +16,7 @@ import Control.Concurrent.Async
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Control.Exception
 import Lens.Micro
-import qualified Data.Aeson as A
 
-
-readConfigFromFile :: FilePath -> IO (Maybe Config)
-readConfigFromFile filePath = do
-    result <- A.eitherDecodeFileStrict filePath
-    case result of
-        Left err -> do
-            putStrLn $ "Error parsing JSON: " ++ err
-            pure Nothing
-        Right job -> pure (Just job)
 
 applyOperation :: Operation -> Double -> Double -> NumberOrErr
 applyOperation op x y = case op of
@@ -79,13 +70,6 @@ processRest acc ops = do
                         Right val -> processRest (acc & value .~ Just val ) ops'
                 Nothing -> processRest (acc & value .~ Just num) ops
         Just (Left err) -> processRest (acc & errors %~ (err:)) ops
-
-chunk :: Int -> [a] -> [[a]]
-chunk _ [] = []
-chunk n xs = take n xs : chunk n (drop n xs)
-
-getBatches :: Config -> [[Job]]
-getBatches conf = chunk (conf ^. numberOfThreads) $ conf ^. jobs
 
 handleJob :: Job -> IO ()
 handleJob job = let currJobId = job ^. jobId in
