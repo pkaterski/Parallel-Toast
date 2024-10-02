@@ -95,11 +95,11 @@ popLast (x:xs) = ((x:xs'), l)
 parseWords :: Monad m => ConduitT T.Text T.Text m ()
 parseWords = go Nothing
   where
-    go leftover = do
+    go leftoverStr = do
         str <- await
         case str of
-            Nothing -> yieldLeftover leftover
-            Just s  -> handleNextChunck leftover s
+            Nothing -> yieldLeftover leftoverStr
+            Just s  -> handleNextChunck leftoverStr s
 
     mergeLeftover Nothing s  = s
     mergeLeftover (Just l) s = l <> s
@@ -107,35 +107,14 @@ parseWords = go Nothing
     yieldLeftover Nothing  = pure ()
     yieldLeftover (Just l) = yield l
 
-    handleNextChunck leftover s = do
-        let (ws, l') = popLast $ T.words $ mergeLeftover leftover s
+    handleNextChunck leftoverStr s = do
+        let (ws, l') = popLast $ T.words $ mergeLeftover leftoverStr s
         C.yieldMany ws
         if T.last s == '\n'
             then do
                 yieldLeftover l'
                 go Nothing
             else go l'
-
-processFile' :: FilePath -> FilePath -> IO ()
-processFile' fi fo = handle onErr $ runProcess fi fo
-    where
-        onErr :: SomeException -> IO ()
-        onErr e = do
-            putStrLn $ "action was killed by: " ++ displayException e
-        runProcess :: FilePath -> FilePath -> IO ()
-        runProcess inputFile outputFile = do
-            result <- runConduitRes $
-                C.sourceFile inputFile
-                .| CT.decodeUtf8
-                -- .| C.concatMap T.words  -- simpler but has a bug
-                .| parseWords
-                .| C.mapM parseNumber
-                .| processNumbers
-            case result of
-                Left err -> putStrLn $ "[ERROR] " ++ err
-                Right n  -> do
-                    writeFile outputFile (show n)
-                    putStrLn $ "Done: " <> outputFile
 
 onErr :: SomeException -> IO ()
 onErr e = do
