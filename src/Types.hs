@@ -9,7 +9,7 @@ import qualified Data.Aeson as A
 import GHC.Generics
 
 data Operation = Add | Subtract | Multiply | Divide
-    deriving (Show, Generic)
+    deriving (Eq, Show, Generic)
 
 instance A.FromJSON Operation
 instance A.ToJSON Operation
@@ -19,7 +19,7 @@ type NumberOrErr = Either String Double
 data Result = Result
     { _value  :: Maybe Double
     , _errors :: [String]
-    } deriving Show
+    } deriving (Eq, Show)
 
 makeLenses ''Result
 
@@ -33,7 +33,7 @@ data Job = Job
     , _inFile     :: String
     , _outFile    :: String
     , _operations :: [Operation]
-    } deriving (Show, Generic)
+    } deriving (Eq, Show, Generic)
 
 makeLenses ''Job
 
@@ -46,7 +46,7 @@ data Config = Config
     { _jobs            :: [Job]
     , _numberOfThreads :: Int
     , _logFile         :: String
-    } deriving (Show, Generic)
+    } deriving (Eq, Show, Generic)
 
 makeLenses ''Config
 
