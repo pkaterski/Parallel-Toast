@@ -30,6 +30,11 @@ dependencies:
 - async
 - time
 - aeson
+- hspec
+- QuickCheck
+- stm
+- mtl
+- unliftio
 
 ghc-options:
 - -Wall
