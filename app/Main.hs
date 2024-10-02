@@ -17,7 +17,8 @@ import Lens.Micro
 main :: IO ()
 main = do
     startTime <- getCurrentTime
-    mConf <- readConfigFromFile "config.json"
+    confPath <- getConfigPath
+    mConf <- readConfigFromFile confPath
     case mConf of
         Just conf -> do
             let batches = getBatches conf
@@ -25,8 +26,15 @@ main = do
             mapM_ (\batch -> mapConcurrently_ handleJob batch) batches
             endTime <- getCurrentTime
             let elapsedTime = diffUTCTime endTime startTime
-            putStrLn $ "Elapsed time: " ++ show elapsedTime
+            putStrLn $ "Elapsed time: " <> show elapsedTime
         Nothing -> putStrLn "Exiting: Error reading config..."
+
+getConfigPath :: IO String
+getConfigPath = do
+    args <- getArgs
+    case args of
+        [_, conf] -> pure conf
+        _         -> pure "config.json"
 
 handleJob :: Job -> IO ()
 handleJob job = let currJobId = job ^. jobId in
