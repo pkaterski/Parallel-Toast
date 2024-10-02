@@ -62,6 +62,16 @@ main = hspec $ do
       config `shouldBe` Nothing
 
     it "correctly splits jobs into batches" $ do
-      let config = Config [Job 1 "in1" "out1" [Add], Job 2 "in2" "out2" [Subtract]] 1 "log.txt"
-      getBatches config `shouldBe` [[Job 1 "in1" "out1" [Add]], [Job 2 "in2" "out2" [Subtract]]]
+      let config = Config [Job 1 "in1" "out1" [Add], Job 2 "in2" "out2" [Subtract], Job 3 "in3" "out3" [Add]] 2 "log.txt"
+      getBatches config
+        `shouldBe`
+          [[Job 1 "in1" "out1" [Add], Job 2 "in2" "out2" [Subtract]], [Job 3 "in3" "out3" [Add]]]
+
+    prop "jobs split into batches preserve their number" $
+      forAll (choose (1, 10)) $ \numThreads ->
+        forAll (choose (0, 100)) $ \numJobs ->
+          let jobs = [Job i (show i ++ ".in") (show i ++ ".out") [Add] | i <- [1..numJobs]]
+              config = Config jobs numThreads "log.txt"
+              batches = getBatches config
+          in length (concat batches) === length jobs
 
