@@ -35,8 +35,9 @@ operations = cycle [Add, Subtract]
 
 parseNumber :: MonadFail m => T.Text -> m Double
 parseNumber txt = case TR.double txt of
-    Right (num, _) -> pure num
-    Left err       -> fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: " ++ err
+    Right (num, "") -> pure num
+    Right (_, l)    -> fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: Leftover: " <> T.unpack l
+    Left err        -> fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: " ++ err
 
 processNumbers :: ConduitT Double Void (ResourceT IO) Result
 processNumbers = do
