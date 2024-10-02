@@ -15,14 +15,27 @@ import System.IO.Unsafe (unsafePerformIO)
 import Control.Concurrent.Async
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Control.Exception
+import Lens.Micro
 
 
 data Operation = Add | Subtract | Multiply | Divide
     deriving Show
 
-type Result = Either String Double
+--type Result = Either String Double
+type NumberOrErr = Either String Double
 
-applyOperation :: Operation -> Double -> Double -> Result
+data Result = Result
+    { _value  :: Maybe Double
+    , _errors :: [String]
+    } deriving Show
+
+value :: Lens' Result (Maybe Double)
+value = lens _value (\s v -> s { _value = v })
+
+errors :: Lens' Result [String]
+errors = lens _errors (\s e -> s { _errors = e })
+
+applyOperation :: Operation -> Double -> Double -> NumberOrErr
 applyOperation op x y = case op of
     Add      -> pure $ x + y
     Subtract -> pure $ x - y
@@ -35,43 +48,48 @@ operations :: [Operation]
 operations = cycle [Add, Subtract]
 --operations = cycle [Add, Subtract, Multiply, Divide]
 
--- TODO maybe update Result type to have Value, Log and Error???
-parseNumber :: Monad m => ConduitT T.Text Double m ()
+parseNumber :: Monad m => ConduitT T.Text NumberOrErr m ()
 parseNumber = do
-    str <- await
-    case fmap TR.double str of
-        Just (Right (num, "")) -> do
-            yield num
-            parseNumber
-        Just (Right (num, l)) -> do
-            yield num
-            -- TODO log
-            -- fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: Leftover: " <> T.unpack l
-            pure ()
-        Just (Left err) -> do
-            -- TODO log
-            -- fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: " ++ err
-            pure ()
+    maybeTxt <- await
+    case maybeTxt of
+        Just txt -> case TR.double txt of
+            Right (num, "") -> do
+                yield $ Right num
+                -- continue the processing
+                parseNumber
+            Right (num, l) -> do
+                yield $ Right num
+                yield $ Left $ "Failed to parse number: " <> T.unpack txt <> " Error: Leftover: " <> T.unpack l
+                -- stop the processing
+                pure ()
+            Left err -> do
+                yield $ Left $ "Failed to parse number: " <> T.unpack txt <> " Error: " <> err
+                -- stop the processing
+                pure ()
         Nothing -> pure ()
 
-processNumbers :: ConduitT Double Void (ResourceT IO) Result
+processNumbers :: ConduitT NumberOrErr Void (ResourceT IO) Result
 processNumbers = do
     mFirstNum <- await
     case mFirstNum of
-        Nothing       -> pure $ Left "No numbers in input file."
-        Just firstNum -> processRest firstNum operations
+        Nothing          -> pure $ Result Nothing ["No numbers in input file."]
+        Just (Right num) -> processRest (Result (Just num) []) operations
+        Just (Left err)  -> processRest (Result Nothing [err]) operations
 
-processRest :: Double -> [Operation] -> ConduitT Double Void (ResourceT IO) Result
-processRest _ [] = pure $ Left "Ran out of operations."
+processRest :: Result -> [Operation] -> ConduitT NumberOrErr Void (ResourceT IO) Result
+processRest acc [] = pure acc
 processRest acc ops = do
     mNextNum <- await
     case mNextNum of
-        Nothing  -> pure $ Right acc
-        Just num -> do
-            let (op:ops') = ops
-            case applyOperation op acc num of
-                e@(Left _) -> pure e
-                Right acc' -> processRest acc' ops'
+        Nothing  -> pure acc
+        Just (Right num) -> do
+            case (acc ^. value) of
+                Just curr -> do
+                    let (op:ops') = ops
+                    case applyOperation op curr num of
+                        Left e    -> pure $ acc & errors %~ (e:)
+                        Right val -> processRest (acc & value .~ Just val ) ops'
+                Nothing -> processRest (acc & value .~ Just num ) ops
 
 tasks :: [IO ()]
 tasks =
@@ -141,10 +159,10 @@ processFile inputFile outputFile = do
         .| parseWords
         .| parseNumber
         .| processNumbers
-    case result of
-        Left err -> putStrLn $ "[ERROR] " ++ err
-        Right n  -> do
+    case result ^. value of
+        Nothing -> pure ()
+        Just n  -> do
             writeFile outputFile (show n)
-            putStrLn $ "Done: " <> outputFile
+            putStrLn $ "Done. Saved:" <> outputFile
 
 
