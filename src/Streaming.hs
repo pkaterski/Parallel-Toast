@@ -1,6 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Streaming where
+module Streaming 
+    ( processNumbers
+    , processRest
+    , parseWords
+    , parseNumber
+    )where
 
 import Types
 import Helper (popLast, applyOperation)
