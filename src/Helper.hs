@@ -12,8 +12,8 @@ chunk n xs = take n xs : chunk n (drop n xs)
 
 popLast :: [a] -> ([a], Maybe a)
 popLast []     = ([], Nothing)
-popLast (x:[]) = ([], Just x)
-popLast (x:xs) = ((x:xs'), l)
+popLast [x]    = ([], Just x)
+popLast (x:xs) = (x:xs', l)
   where
     (xs', l) = popLast xs
 

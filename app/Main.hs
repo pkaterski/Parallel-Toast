@@ -35,9 +35,7 @@ main = do
             let elapsedTime = diffUTCTime endTime startTime
             putStrLn $ "Elapsed time: " <> show elapsedTime
             putStrLn "Saving log..."
-            logs <- atomically $ do
-                logs <- readTVar logVar
-                pure logs
+            logs <- atomically $ readTVar logVar
             writeFile (conf ^. logFile) $ intercalate "\n" logs
 
         Nothing -> putStrLn "Exiting: Error reading config..."
@@ -49,7 +47,7 @@ runApp = do
     mapM_ runBatch batches
 
 runBatch :: [Job] -> AppM ()
-runBatch batch = mapConcurrently_ runJob batch
+runBatch = mapConcurrently_ runJob
 
 getConfigPath :: IO String
 getConfigPath = do

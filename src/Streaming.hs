@@ -31,8 +31,8 @@ processRest acc ops = do
     mNextNum <- await
     case mNextNum of
         Nothing  -> pure acc
-        Just (Right num) -> do
-            case (acc ^. value) of
+        Just (Right num) ->
+            case acc ^. value of
                 Just curr -> do
                     let (op:ops') = ops
                     case applyOperation op curr num of
