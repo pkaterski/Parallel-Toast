@@ -19,14 +19,14 @@ import Data.List (intercalate)
 main :: IO ()
 main = do
     startTime <- getCurrentTime
-    confPath <- getConfigPath
-    mConf <- readConfigFromFile confPath
+    confPath  <- getConfigPath
+    mConf     <- readConfigFromFile confPath
     case mConf of
         Just conf -> do
-            logVar           <- atomically $ newTVar []
-            jobsStartedVar   <- atomically $ newTVar 0
-            jobsComplitedVar <- atomically $ newTVar 0
-            jobsFailedVar    <- atomically $ newTVar 0
+            logVar           <- newTVarIO []
+            jobsStartedVar   <- newTVarIO 0
+            jobsComplitedVar <- newTVarIO 0
+            jobsFailedVar    <- newTVarIO 0
 
             let env = Env logVar conf jobsStartedVar jobsComplitedVar jobsFailedVar
 
@@ -35,7 +35,7 @@ main = do
             let elapsedTime = diffUTCTime endTime startTime
             putStrLn $ "Elapsed time: " <> show elapsedTime
             putStrLn "Saving log..."
-            logs <- atomically $ readTVar logVar
+            logs <- readTVarIO logVar
             writeFile (conf ^. logFile) $ intercalate "\n" logs
 
         Nothing -> putStrLn "Exiting: Error reading config..."

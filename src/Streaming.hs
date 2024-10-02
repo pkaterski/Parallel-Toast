@@ -37,8 +37,8 @@ processRest acc ops = do
                     let (op:ops') = ops
                     case applyOperation op curr num of
                         Left e    -> pure $ acc & errors %~ (e:)
-                        Right val -> processRest (acc & value .~ Just val ) ops'
-                Nothing -> processRest (acc & value .~ Just num) ops
+                        Right val -> processRest (acc & value ?~ val) ops'
+                Nothing -> processRest (acc & value ?~ num) ops
         Just (Left err) -> processRest (acc & errors %~ (err:)) ops
 
 parseNumber :: Monad m => ConduitT T.Text NumberOrErr m ()
