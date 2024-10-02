@@ -1,4 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main (main) where
 
@@ -16,10 +19,18 @@ import Control.Concurrent.Async
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Control.Exception
 import Lens.Micro
+import Lens.Micro.TH
+import qualified Data.Aeson as A
+import GHC.Generics
+import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Lazy.Char8 as BL8
 
 
 data Operation = Add | Subtract | Multiply | Divide
-    deriving Show
+    deriving (Show, Generic)
+
+instance A.FromJSON Operation
+instance A.ToJSON Operation
 
 type NumberOrErr = Either String Double
 
@@ -28,11 +39,57 @@ data Result = Result
     , _errors :: [String]
     } deriving Show
 
-value :: Lens' Result (Maybe Double)
-value = lens _value (\s v -> s { _value = v })
+makeLenses ''Result
 
-errors :: Lens' Result [String]
-errors = lens _errors (\s e -> s { _errors = e })
+customOptions :: A.Options
+customOptions = A.defaultOptions
+    { A.fieldLabelModifier = drop 1
+    }
+
+data Job = Job
+    { _jobId      :: Int
+    , _inFile     :: String
+    , _outFile    :: String
+    , _operations :: [Operation]
+    } deriving (Show, Generic)
+
+makeLenses ''Job
+
+addUnderscore :: String -> String
+addUnderscore "" = ""
+addUnderscore s  = '_' : s
+
+instance A.FromJSON Job where
+    parseJSON = A.genericParseJSON customOptions
+instance A.ToJSON Job where
+    toJSON = A.genericToJSON customOptions
+
+data Config = Config
+    { _jobs            :: [Job]
+    , _numberOfThreads :: Int
+    , _logFile         :: String
+    } deriving (Show, Generic)
+
+makeLenses ''Config
+
+instance A.FromJSON Config where
+    parseJSON = A.genericParseJSON customOptions
+instance A.ToJSON Config where
+    toJSON = A.genericToJSON customOptions
+
+readConfigFromFile :: FilePath -> IO (Maybe Config)
+readConfigFromFile filePath = do
+    result <- A.eitherDecodeFileStrict filePath
+    case result of
+        Left err -> do
+            putStrLn $ "Error parsing JSON: " ++ err
+            pure Nothing
+        Right job -> pure (Just job)
+
+main :: IO ()
+main = do
+    c <- readConfigFromFile "config.json"
+    putStrLn $ show c
 
 applyOperation :: Operation -> Double -> Double -> NumberOrErr
 applyOperation op x y = case op of
@@ -43,9 +100,9 @@ applyOperation op x y = case op of
                 then Left "Division by zero"
                 else pure $ x / y
 
-operations :: [Operation]
-operations = cycle [Add, Subtract]
---operations = cycle [Add, Subtract, Multiply, Divide]
+myOperations :: [Operation]
+myOperations = cycle [Add, Subtract]
+--myOperations = cycle [Add, Subtract, Multiply, Divide]
 
 parseNumber :: Monad m => ConduitT T.Text NumberOrErr m ()
 parseNumber = do
@@ -72,8 +129,8 @@ processNumbers = do
     mFirstNum <- await
     case mFirstNum of
         Nothing          -> pure $ Result Nothing ["No numbers in input file."]
-        Just (Right num) -> processRest (Result (Just num) []) operations
-        Just (Left err)  -> processRest (Result Nothing [err]) operations
+        Just (Right num) -> processRest (Result (Just num) []) myOperations
+        Just (Left err)  -> processRest (Result Nothing [err]) myOperations
 
 processRest :: Result -> [Operation] -> ConduitT NumberOrErr Void (ResourceT IO) Result
 processRest acc [] = pure acc
@@ -99,8 +156,8 @@ chunk :: Int -> [a] -> [[a]]
 chunk _ [] = []
 chunk n xs = take n xs : chunk n (drop n xs)
 
-main :: IO ()
-main = do
+main' :: IO ()
+main' = do
     startTime <- getCurrentTime
     let batches = chunk 4 tasks
 
