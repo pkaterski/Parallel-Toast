@@ -32,6 +32,8 @@ dependencies:
 - conduit-combinators
 - conduit-extra
 - resourcet
+- async
+- time
 
 ghc-options:
 - -Wall
