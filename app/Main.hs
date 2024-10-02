@@ -57,7 +57,7 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        [_, inputFile, outputFile] -> processFiles inputFile outputFile
+        [_, inputFile, outputFile] -> processFile inputFile outputFile
         _                          -> putStrLn "Usage: program inputFile outputFile"
 
 popLast :: [a] -> ([a], Maybe a)
@@ -88,8 +88,8 @@ parseWords Nothing = do
             parseWords l'
         Nothing -> pure ()
 
-processFiles :: FilePath -> FilePath -> IO ()
-processFiles inputFile outputFile = do
+processFile :: FilePath -> FilePath -> IO ()
+processFile inputFile outputFile = do
     result <- runConduitRes $
         C.sourceFile inputFile
         .| CT.decodeUtf8
