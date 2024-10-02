@@ -75,7 +75,13 @@ parseWords (Just l) = do
         Just s -> do
             let (ws, l') = popLast $ T.words $ l <> s
             C.yieldMany ws
-            parseWords l'
+            if T.last s == '\n'
+                then do
+                    case l' of
+                        Just l'' -> yield l''
+                        Nothing -> pure ()
+                    parseWords Nothing
+                else parseWords l'
         Nothing -> do
             yield l
             pure ()
@@ -85,7 +91,13 @@ parseWords Nothing = do
         Just s -> do
             let (ws, l') = popLast $ T.words s
             C.yieldMany ws
-            parseWords l'
+            if T.last s == '\n'
+                then do
+                    case l' of
+                        Just l'' -> yield l''
+                        Nothing -> pure ()
+                    parseWords Nothing
+                else parseWords l'
         Nothing -> pure ()
 
 processFile :: FilePath -> FilePath -> IO ()
