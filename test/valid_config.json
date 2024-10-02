@@ -1,0 +1,35 @@
+{
+  "jobs": [
+    {
+      "jobId": 1,
+      "operations": [
+        "Add",
+        "Subtract",
+        "Multiply",
+        "Divide"
+      ],
+      "inFile": "in_example.txt",
+      "outFile": "out_example.txt"
+    },
+    {
+      "jobId": 777,
+      "operations": [
+        "Add",
+        "Add"
+      ],
+      "inFile": "i1.txt",
+      "outFile": "o1.txt"
+    },
+    {
+      "jobId": 142,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i2.txt",
+      "outFile": "o2.txt"
+    }
+  ],
+  "logFile": "log.txt",
+  "numberOfThreads": 4
+}

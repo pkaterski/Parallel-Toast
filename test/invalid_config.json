@@ -1,0 +1,16 @@
+{
+  "jobs": [
+    {
+      "jobId": 1,
+      "operations": [
+        "Add",
+        "Subtract",
+        "Multiply",
+        "Divide"
+      ],
+      "inFile": "in_example.txt",
+      "outFile": "out_example.txt"
+    },
+    {
+      "jobId": 777,
+      "operations": [
