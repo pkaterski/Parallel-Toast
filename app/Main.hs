@@ -63,11 +63,16 @@ runJob job = do
         .| parseWords
         .| parseNumber
         .| processNumbers currOperations
+
+    let errStr  = "[ERROR] " <> currJobId <> " "
+    let infoStr = "[INFO] " <> currJobId <> " "
+    mapM_ (appendLog . (errStr <>)) (result ^. errors)
+
     case result ^. value of
-        Nothing -> appendLog $ currJobId <> " Failed: No result produced"
+        Nothing -> appendLog $ errStr <> "Failed: No result produced"
         Just n  -> do
             liftIO $ writeFile outputFile (show n)
-            appendLog $ currJobId <> " Done. Saved: " <> outputFile
+            appendLog $ infoStr <> "Done. Saved: " <> outputFile
 
 appendLog :: String -> AppM ()
 appendLog msg = do
