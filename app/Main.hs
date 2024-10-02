@@ -16,10 +16,6 @@ import Control.Exception
 import Lens.Micro
 
 
-handleJob :: Job -> IO ()
-handleJob job = let currJobId = job ^. jobId in
-    handle (onErr currJobId) $ runJob job
-
 main :: IO ()
 main = do
     startTime <- getCurrentTime
@@ -33,6 +29,10 @@ main = do
             let elapsedTime = diffUTCTime endTime startTime
             putStrLn $ "Elapsed time: " ++ show elapsedTime
         Nothing -> putStrLn "Exiting: Error reading config..."
+
+handleJob :: Job -> IO ()
+handleJob job = let currJobId = job ^. jobId in
+    handle (onErr currJobId) $ runJob job
 
 onErr :: Int -> SomeException -> IO ()
 onErr currJobId e = do
