@@ -90,6 +90,7 @@ processRest acc ops = do
                         Left e    -> pure $ acc & errors %~ (e:)
                         Right val -> processRest (acc & value .~ Just val ) ops'
                 Nothing -> processRest (acc & value .~ Just num ) ops
+        Just (Left err) -> processRest (acc & errors %~ (err:)) ops
 
 tasks :: [IO ()]
 tasks =
