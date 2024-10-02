@@ -64,11 +64,16 @@ tasks :: [IO ()]
 tasks =
     fmap ((\i -> processFile ("i" ++ i ++ ".txt") ("o" ++ i ++ ".txt")) . show) ([1..50] :: [Int])
 
+chunk :: Int -> [a] -> [[a]]
+chunk _ [] = []
+chunk n xs = take n xs : chunk n (drop n xs)
+
 main :: IO ()
 main = do
     startTime <- getCurrentTime
+    let batches = chunk 4 tasks
 
-    mapConcurrently_ (\p -> handle onErr p) tasks
+    mapM_ (\batch -> mapConcurrently_ (\p -> handle onErr p) batch) batches
     --mapM_ id tasks
     --
     endTime <- getCurrentTime
@@ -86,39 +91,30 @@ popLast (x:xs) = ((x:xs'), l)
     where
         (xs', l) = popLast xs
 
--- TODO refactor!
--- first arg is a leftover from the previous stream
-parseWords :: Monad m => Maybe T.Text -> ConduitT T.Text T.Text m ()
-parseWords (Just l) = do
-    str <- await
-    case str of
-        Just s -> do
-            let (ws, l') = popLast $ T.words $ l <> s
-            C.yieldMany ws
-            if T.last s == '\n'
-                then do
-                    case l' of
-                        Just l'' -> yield l''
-                        Nothing -> pure ()
-                    parseWords Nothing
-                else parseWords l'
-        Nothing -> do
-            yield l
-            pure ()
-parseWords Nothing = do
-    str <- await
-    case str of
-        Just s -> do
-            let (ws, l') = popLast $ T.words s
-            C.yieldMany ws
-            if T.last s == '\n'
-                then do
-                    case l' of
-                        Just l'' -> yield l''
-                        Nothing -> pure ()
-                    parseWords Nothing
-                else parseWords l'
-        Nothing -> pure ()
+-- this parsing handles leftover from the previous stream
+parseWords :: Monad m => ConduitT T.Text T.Text m ()
+parseWords = go Nothing
+  where
+    go leftover = do
+        str <- await
+        case str of
+            Nothing -> yieldLeftover leftover
+            Just s  -> handleNextChunck leftover s
+
+    mergeLeftover Nothing s  = s
+    mergeLeftover (Just l) s = l <> s
+
+    yieldLeftover Nothing  = pure ()
+    yieldLeftover (Just l) = yield l
+
+    handleNextChunck leftover s = do
+        let (ws, l') = popLast $ T.words $ mergeLeftover leftover s
+        C.yieldMany ws
+        if T.last s == '\n'
+            then do
+                yieldLeftover l'
+                go Nothing
+            else go l'
 
 processFile' :: FilePath -> FilePath -> IO ()
 processFile' fi fo = handle onErr $ runProcess fi fo
@@ -132,7 +128,7 @@ processFile' fi fo = handle onErr $ runProcess fi fo
                 C.sourceFile inputFile
                 .| CT.decodeUtf8
                 -- .| C.concatMap T.words  -- simpler but has a bug
-                .| parseWords Nothing
+                .| parseWords
                 .| C.mapM parseNumber
                 .| processNumbers
             case result of
@@ -151,7 +147,7 @@ processFile inputFile outputFile = do
         C.sourceFile inputFile
         .| CT.decodeUtf8
         -- .| C.concatMap T.words  -- simpler but has a bug
-        .| parseWords Nothing
+        .| parseWords
         .| C.mapM parseNumber
         .| processNumbers
     case result of
