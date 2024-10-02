@@ -17,6 +17,7 @@ import Control.Monad.IO.Class()
 import Control.Monad.Trans.Resource (ResourceT)
 import Lens.Micro
 
+-- | Processes a stream of numbers by accumulating operations to them
 processNumbers :: [Operation] -> ConduitT NumberOrErr Void (ResourceT IO) Result
 processNumbers ops = do
     mFirstNum <- await
@@ -41,6 +42,7 @@ processRest acc ops = do
                 Nothing -> processRest (acc & value ?~ num) ops
         Just (Left err) -> processRest (acc & errors %~ (err:)) ops
 
+-- | Given a stream of Text produces either a number or an error
 parseNumber :: Monad m => ConduitT T.Text NumberOrErr m ()
 parseNumber = do
     mTxt <- await
@@ -61,7 +63,8 @@ parseNumber = do
                 pure ()
         Nothing -> pure ()
 
--- this parsing handles leftover from the previous stream
+-- | Given a stream of text produces a stream of words
+-- | this parsing handles leftover from the previous stream
 parseWords :: Monad m => ConduitT T.Text T.Text m ()
 parseWords = go Nothing
   where
