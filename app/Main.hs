@@ -13,6 +13,7 @@ import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Lens.Micro
 import Control.Concurrent.STM
 import Control.Monad.Reader
+import Data.List (intercalate)
 
 
 main :: IO ()
@@ -33,6 +34,12 @@ main = do
             endTime <- getCurrentTime
             let elapsedTime = diffUTCTime endTime startTime
             putStrLn $ "Elapsed time: " <> show elapsedTime
+            putStrLn "Saving log..."
+            logs <- atomically $ do
+                logs <- readTVar logVar
+                pure logs
+            writeFile (conf ^. logFile) $ intercalate "\n" logs
+
         Nothing -> putStrLn "Exiting: Error reading config..."
 
 runApp :: AppM ()
