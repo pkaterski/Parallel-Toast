@@ -8,10 +8,14 @@ import qualified Data.Conduit.Combinators as C
 import qualified Data.Conduit.Text as CT
 import System.Environment (getArgs)
 import Control.Monad.IO.Class()
-import Control.Concurrent.Async
+--import Control.Concurrent.Async hiding (mapConcurrently_)
+import UnliftIO (mapConcurrently_)
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
-import Control.Exception
+--import Control.Exception
 import Lens.Micro
+import Control.Concurrent.STM
+--import Control.Monad (forM_)
+import Control.Monad.Reader
 
 
 main :: IO ()
@@ -21,13 +25,28 @@ main = do
     mConf <- readConfigFromFile confPath
     case mConf of
         Just conf -> do
-            let batches = getBatches conf
+            logVar           <- atomically $ newTVar []
+            jobsStartedVar   <- atomically $ newTVar 0
+            jobsComplitedVar <- atomically $ newTVar 0
+            jobsFailedVar    <- atomically $ newTVar 0
 
-            mapM_ (\batch -> mapConcurrently_ handleJob batch) batches
+            let batches = getBatches conf
+                env     = Env logVar conf jobsStartedVar jobsComplitedVar jobsFailedVar
+
+            runReaderT runApp env
             endTime <- getCurrentTime
             let elapsedTime = diffUTCTime endTime startTime
             putStrLn $ "Elapsed time: " <> show elapsedTime
         Nothing -> putStrLn "Exiting: Error reading config..."
+
+runApp :: AppM ()
+runApp = do
+    conf <- asks envConfig
+    let batches = getBatches conf
+    mapM_ runBatch batches
+
+runBatch :: [Job] -> AppM ()
+runBatch batch = mapConcurrently_ runJob batch
 
 getConfigPath :: IO String
 getConfigPath = do
@@ -36,31 +55,40 @@ getConfigPath = do
         [_, conf] -> pure conf
         _         -> pure "config.json"
 
-handleJob :: Job -> IO ()
-handleJob job = let currJobId = job ^. jobId in
-    handle (onErr currJobId) $ runJob job
+--handleJob :: Job -> AppM ()
+--handleJob job = let currJobId = job ^. jobId in
+--    --liftIO $ handle (onErr currJobId) $ runJob job
+--    runJob job `catch` (onErr currJobId)
+--
+--onErr :: Int -> SomeException -> AppM ()
+--onErr currJobId e = do
+--    let jobStr = "[" <> show currJobId <> "]"
+--    let errMsg = "Job with ID " <> jobStr <> "was killed by: " <> displayException e
+--    appendLog errMsg
 
-onErr :: Int -> SomeException -> IO ()
-onErr currJobId e = do
-    let jobStr = "[" <> show currJobId <> "]"
-    putStrLn $ "Job with ID " <> jobStr <> "was killed by: " <> displayException e
-
-runJob :: Job -> IO ()
+runJob :: Job -> AppM ()
 runJob job = do
     let inputFile      = job ^. inFile
         outputFile     = job ^. outFile
         currJobId      = "[" <> show (job ^. jobId) <> "]"
         currOperations = cycle $ job ^. operations
-    result <- runConduitRes $
+    result <- liftIO $ runConduitRes $
         C.sourceFile inputFile
         .| CT.decodeUtf8
         .| parseWords
         .| parseNumber
         .| processNumbers currOperations
     case result ^. value of
-        Nothing -> pure ()
+        Nothing -> appendLog $ currJobId <> " Failed: No result produced"
         Just n  -> do
-            writeFile outputFile (show n)
-            putStrLn $ currJobId <> " Done. Saved: " <> outputFile
+            liftIO $ writeFile outputFile (show n)
+            appendLog $ currJobId <> " Done. Saved: " <> outputFile
 
+appendLog :: String -> AppM ()
+appendLog msg = do
+    logVar <- asks envLogVar
+    liftIO $ atomically $ do
+        logs <- readTVar logVar
+        writeTVar logVar (msg:logs)
+    liftIO $ putStrLn msg -- for clarity
 

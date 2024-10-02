@@ -7,6 +7,8 @@ module Types where
 import Lens.Micro.TH
 import qualified Data.Aeson as A
 import GHC.Generics
+import Control.Monad.Reader
+import Control.Concurrent.STM
 
 data Operation = Add | Subtract | Multiply | Divide
     deriving (Eq, Show, Generic)
@@ -54,4 +56,15 @@ instance A.FromJSON Config where
     parseJSON = A.genericParseJSON customOptions
 instance A.ToJSON Config where
     toJSON = A.genericToJSON customOptions
+
+data Env = Env
+    { envLogVar        :: TVar Log
+    , envConfig        :: Config
+    , envJobsStarted   :: TVar Int
+    , envJobsCompleted :: TVar Int
+    , envJobsFailed    :: TVar Int
+    }
+
+type Log = [String]
+type AppM = ReaderT Env IO
 
