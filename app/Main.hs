@@ -86,11 +86,6 @@ readConfigFromFile filePath = do
             pure Nothing
         Right job -> pure (Just job)
 
-main :: IO ()
-main = do
-    c <- readConfigFromFile "config.json"
-    putStrLn $ show c
-
 applyOperation :: Operation -> Double -> Double -> NumberOrErr
 applyOperation op x y = case op of
     Add      -> pure $ x + y
@@ -124,13 +119,13 @@ parseNumber = do
                 pure ()
         Nothing -> pure ()
 
-processNumbers :: ConduitT NumberOrErr Void (ResourceT IO) Result
-processNumbers = do
+processNumbers :: [Operation] -> ConduitT NumberOrErr Void (ResourceT IO) Result
+processNumbers ops = do
     mFirstNum <- await
     case mFirstNum of
         Nothing          -> pure $ Result Nothing ["No numbers in input file."]
-        Just (Right num) -> processRest (Result (Just num) []) myOperations
-        Just (Left err)  -> processRest (Result Nothing [err]) myOperations
+        Just (Right num) -> processRest (Result (Just num) []) ops
+        Just (Left err)  -> processRest (Result Nothing [err]) ops
 
 processRest :: Result -> [Operation] -> ConduitT NumberOrErr Void (ResourceT IO) Result
 processRest acc [] = pure acc
@@ -148,29 +143,28 @@ processRest acc ops = do
                 Nothing -> processRest (acc & value .~ Just num) ops
         Just (Left err) -> processRest (acc & errors %~ (err:)) ops
 
-tasks :: [IO ()]
-tasks =
-    fmap ((\i -> processFile ("i" ++ i ++ ".txt") ("o" ++ i ++ ".txt")) . show) ([1..50] :: [Int])
+--tasks :: [IO ()]
+--tasks =
+--    fmap ((\i -> processFile ("i" ++ i ++ ".txt") ("o" ++ i ++ ".txt")) . show) ([1..50] :: [Int])
 
 chunk :: Int -> [a] -> [[a]]
 chunk _ [] = []
 chunk n xs = take n xs : chunk n (drop n xs)
 
-main' :: IO ()
-main' = do
+main :: IO ()
+main = do
     startTime <- getCurrentTime
-    let batches = chunk 4 tasks
+    mConf <- readConfigFromFile "config.json"
+    case mConf of
+        Just conf -> do
+            let numThreads = conf ^. numberOfThreads
+                batches    = chunk numThreads $ map runJob $ conf ^. jobs
 
-    mapM_ (\batch -> mapConcurrently_ (\p -> handle onErr p) batch) batches
-    --mapM_ id tasks
-    --
-    endTime <- getCurrentTime
-    let elapsedTime = diffUTCTime endTime startTime
-    putStrLn $ "Elapsed time: " ++ show elapsedTime
-    -- args <- getArgs
-    -- case args of
-    --     [_, inputFile, outputFile] -> processFile inputFile outputFile
-    --     _                          -> putStrLn "Usage: program inputFile outputFile"
+            mapM_ (\batch -> mapConcurrently_ (\p -> handle onErr p) batch) batches
+            endTime <- getCurrentTime
+            let elapsedTime = diffUTCTime endTime startTime
+            putStrLn $ "Elapsed time: " ++ show elapsedTime
+        Nothing -> putStrLn "Exiting: Error reading config..."
 
 popLast :: [a] -> ([a], Maybe a)
 popLast []     = ([], Nothing)
@@ -204,22 +198,27 @@ parseWords = go Nothing
                 go Nothing
             else go l'
 
+-- TODO ADD ID
 onErr :: SomeException -> IO ()
 onErr e = do
     putStrLn $ "action was killed by: " ++ displayException e
 
-processFile :: FilePath -> FilePath -> IO ()
-processFile inputFile outputFile = do
+runJob :: Job -> IO ()
+runJob job = do
+    let inputFile      = job ^. inFile
+        outputFile     = job ^. outFile
+        currJobId      = "[" <> show (job ^. jobId) <> "]"
+        currOperations = cycle $ job ^. operations
     result <- runConduitRes $
         C.sourceFile inputFile
         .| CT.decodeUtf8
         .| parseWords
         .| parseNumber
-        .| processNumbers
+        .| processNumbers currOperations
     case result ^. value of
         Nothing -> pure ()
         Just n  -> do
             writeFile outputFile (show n)
-            putStrLn $ "Done. Saved:" <> outputFile
+            putStrLn $ currJobId <> " Done. Saved: " <> outputFile
 
 
