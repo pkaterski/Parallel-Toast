@@ -151,16 +151,22 @@ chunk :: Int -> [a] -> [[a]]
 chunk _ [] = []
 chunk n xs = take n xs : chunk n (drop n xs)
 
+getBatches :: Config -> [[Job]]
+getBatches conf = chunk (conf ^. numberOfThreads) $ conf ^. jobs
+
+handleJob :: Job -> IO ()
+handleJob job = let currJobId = job ^. jobId in
+    handle (onErr currJobId) $ runJob job
+
 main :: IO ()
 main = do
     startTime <- getCurrentTime
     mConf <- readConfigFromFile "config.json"
     case mConf of
         Just conf -> do
-            let numThreads = conf ^. numberOfThreads
-                batches    = chunk numThreads $ map runJob $ conf ^. jobs
+            let batches = getBatches conf
 
-            mapM_ (\batch -> mapConcurrently_ (\p -> handle onErr p) batch) batches
+            mapM_ (\batch -> mapConcurrently_ handleJob batch) batches
             endTime <- getCurrentTime
             let elapsedTime = diffUTCTime endTime startTime
             putStrLn $ "Elapsed time: " ++ show elapsedTime
@@ -198,10 +204,10 @@ parseWords = go Nothing
                 go Nothing
             else go l'
 
--- TODO ADD ID
-onErr :: SomeException -> IO ()
-onErr e = do
-    putStrLn $ "action was killed by: " ++ displayException e
+onErr :: Int -> SomeException -> IO ()
+onErr jobId e = do
+    let jobStr = "[" <> show jobId <> "]"
+    putStrLn $ "Job with ID " <> jobStr <> "was killed by: " <> displayException e
 
 runJob :: Job -> IO ()
 runJob job = do
