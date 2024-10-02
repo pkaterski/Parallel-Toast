@@ -22,18 +22,14 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - conduit
-- mtl
-- free
 - microlens
+- microlens-th
 - text
-- transformers
-- microlens-mtl
-- bytestring
-- conduit-combinators
 - conduit-extra
 - resourcet
 - async
 - time
+- aeson
 
 ghc-options:
 - -Wall
