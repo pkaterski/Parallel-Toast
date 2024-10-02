@@ -24,6 +24,11 @@ stack run -- [optional_config_path]
 
 If no config path is provided, it defaults to `config.json`.
 
+Tests can be run using:
+```
+stack test
+```
+
 
 ## Configuration
 
