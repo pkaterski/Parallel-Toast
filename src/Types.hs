@@ -62,7 +62,6 @@ data Env = Env
     , envConfig        :: Config
     , envJobsStarted   :: TVar Int
     , envJobsCompleted :: TVar Int
-    , envJobsFailed    :: TVar Int
     }
 
 type Log = [String]

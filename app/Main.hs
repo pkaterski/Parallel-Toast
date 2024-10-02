@@ -26,9 +26,8 @@ main = do
             logVar           <- newTVarIO []
             jobsStartedVar   <- newTVarIO 0
             jobsComplitedVar <- newTVarIO 0
-            jobsFailedVar    <- newTVarIO 0
 
-            let env = Env logVar conf jobsStartedVar jobsComplitedVar jobsFailedVar
+            let env = Env logVar conf jobsStartedVar jobsComplitedVar
 
             runReaderT runApp env
             endTime <- getCurrentTime
@@ -37,6 +36,11 @@ main = do
             putStrLn "Saving log..."
             logs <- readTVarIO logVar
             writeFile (conf ^. logFile) $ intercalate "\n" logs
+            putStrLn "Done."
+            jobsBegin <- readTVarIO jobsStartedVar
+            jobsEnd   <- readTVarIO jobsComplitedVar
+            putStrLn $ "Jobs Started: " <> show jobsBegin
+            putStrLn $ "Jobs Completed: " <> show jobsEnd
 
         Nothing -> putStrLn "Exiting: Error reading config..."
 
@@ -58,6 +62,8 @@ getConfigPath = do
 
 runJob :: Job -> AppM ()
 runJob job = do
+    jobsStartedVar <- asks envJobsStarted
+    liftIO $ atomically $ modifyTVar' jobsStartedVar (+1)
     let inputFile      = job ^. inFile
         outputFile     = job ^. outFile
         currJobId      = "[" <> show (job ^. jobId) <> "]"
@@ -78,6 +84,9 @@ runJob job = do
         Just n  -> do
             liftIO $ writeFile outputFile (show n)
             appendLog $ infoStr <> "Done. Saved: " <> outputFile
+
+    jobsEndedVar <- asks envJobsCompleted
+    liftIO $ atomically $ modifyTVar' jobsEndedVar (+1)
 
 appendLog :: String -> AppM ()
 appendLog msg = do
