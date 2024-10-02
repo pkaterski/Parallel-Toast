@@ -8,13 +8,10 @@ import qualified Data.Conduit.Combinators as C
 import qualified Data.Conduit.Text as CT
 import System.Environment (getArgs)
 import Control.Monad.IO.Class()
---import Control.Concurrent.Async hiding (mapConcurrently_)
 import UnliftIO (mapConcurrently_)
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
---import Control.Exception
 import Lens.Micro
 import Control.Concurrent.STM
---import Control.Monad (forM_)
 import Control.Monad.Reader
 
 
@@ -30,8 +27,7 @@ main = do
             jobsComplitedVar <- atomically $ newTVar 0
             jobsFailedVar    <- atomically $ newTVar 0
 
-            let batches = getBatches conf
-                env     = Env logVar conf jobsStartedVar jobsComplitedVar jobsFailedVar
+            let env = Env logVar conf jobsStartedVar jobsComplitedVar jobsFailedVar
 
             runReaderT runApp env
             endTime <- getCurrentTime
@@ -54,17 +50,6 @@ getConfigPath = do
     case args of
         [_, conf] -> pure conf
         _         -> pure "config.json"
-
---handleJob :: Job -> AppM ()
---handleJob job = let currJobId = job ^. jobId in
---    --liftIO $ handle (onErr currJobId) $ runJob job
---    runJob job `catch` (onErr currJobId)
---
---onErr :: Int -> SomeException -> AppM ()
---onErr currJobId e = do
---    let jobStr = "[" <> show currJobId <> "]"
---    let errMsg = "Job with ID " <> jobStr <> "was killed by: " <> displayException e
---    appendLog errMsg
 
 runJob :: Job -> AppM ()
 runJob job = do
