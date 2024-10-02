@@ -1,0 +1,456 @@
+{
+  "jobs": [
+    {
+      "jobId": 1,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i1.txt",
+      "outFile": "o1.txt"
+    },
+    {
+      "jobId": 2,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i2.txt",
+      "outFile": "o2.txt"
+    },
+    {
+      "jobId": 3,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i3.txt",
+      "outFile": "o3.txt"
+    },
+    {
+      "jobId": 4,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i4.txt",
+      "outFile": "o4.txt"
+    },
+    {
+      "jobId": 5,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i5.txt",
+      "outFile": "o5.txt"
+    },
+    {
+      "jobId": 6,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i6.txt",
+      "outFile": "o6.txt"
+    },
+    {
+      "jobId": 7,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i7.txt",
+      "outFile": "o7.txt"
+    },
+    {
+      "jobId": 8,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i8.txt",
+      "outFile": "o8.txt"
+    },
+    {
+      "jobId": 9,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i9.txt",
+      "outFile": "o9.txt"
+    },
+    {
+      "jobId": 10,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i10.txt",
+      "outFile": "o10.txt"
+    },
+    {
+      "jobId": 11,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i11.txt",
+      "outFile": "o11.txt"
+    },
+    {
+      "jobId": 12,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i12.txt",
+      "outFile": "o12.txt"
+    },
+    {
+      "jobId": 13,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i13.txt",
+      "outFile": "o13.txt"
+    },
+    {
+      "jobId": 14,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i14.txt",
+      "outFile": "o14.txt"
+    },
+    {
+      "jobId": 15,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i15.txt",
+      "outFile": "o15.txt"
+    },
+    {
+      "jobId": 16,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i16.txt",
+      "outFile": "o16.txt"
+    },
+    {
+      "jobId": 17,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i17.txt",
+      "outFile": "o17.txt"
+    },
+    {
+      "jobId": 18,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i18.txt",
+      "outFile": "o18.txt"
+    },
+    {
+      "jobId": 19,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i19.txt",
+      "outFile": "o19.txt"
+    },
+    {
+      "jobId": 20,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i20.txt",
+      "outFile": "o20.txt"
+    },
+    {
+      "jobId": 21,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i21.txt",
+      "outFile": "o21.txt"
+    },
+    {
+      "jobId": 22,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i22.txt",
+      "outFile": "o22.txt"
+    },
+    {
+      "jobId": 23,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i23.txt",
+      "outFile": "o23.txt"
+    },
+    {
+      "jobId": 24,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i24.txt",
+      "outFile": "o24.txt"
+    },
+    {
+      "jobId": 25,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i25.txt",
+      "outFile": "o25.txt"
+    },
+    {
+      "jobId": 26,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i26.txt",
+      "outFile": "o26.txt"
+    },
+    {
+      "jobId": 27,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i27.txt",
+      "outFile": "o27.txt"
+    },
+    {
+      "jobId": 28,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i28.txt",
+      "outFile": "o28.txt"
+    },
+    {
+      "jobId": 29,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i29.txt",
+      "outFile": "o29.txt"
+    },
+    {
+      "jobId": 30,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i30.txt",
+      "outFile": "o30.txt"
+    },
+    {
+      "jobId": 31,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i31.txt",
+      "outFile": "o31.txt"
+    },
+    {
+      "jobId": 32,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i32.txt",
+      "outFile": "o32.txt"
+    },
+    {
+      "jobId": 33,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i33.txt",
+      "outFile": "o33.txt"
+    },
+    {
+      "jobId": 34,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i34.txt",
+      "outFile": "o34.txt"
+    },
+    {
+      "jobId": 35,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i35.txt",
+      "outFile": "o35.txt"
+    },
+    {
+      "jobId": 36,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i36.txt",
+      "outFile": "o36.txt"
+    },
+    {
+      "jobId": 37,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i37.txt",
+      "outFile": "o37.txt"
+    },
+    {
+      "jobId": 38,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i38.txt",
+      "outFile": "o38.txt"
+    },
+    {
+      "jobId": 39,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i39.txt",
+      "outFile": "o39.txt"
+    },
+    {
+      "jobId": 40,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i40.txt",
+      "outFile": "o40.txt"
+    },
+    {
+      "jobId": 41,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i41.txt",
+      "outFile": "o41.txt"
+    },
+    {
+      "jobId": 42,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i42.txt",
+      "outFile": "o42.txt"
+    },
+    {
+      "jobId": 43,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i43.txt",
+      "outFile": "o43.txt"
+    },
+    {
+      "jobId": 44,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i44.txt",
+      "outFile": "o44.txt"
+    },
+    {
+      "jobId": 45,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i45.txt",
+      "outFile": "o45.txt"
+    },
+    {
+      "jobId": 46,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i46.txt",
+      "outFile": "o46.txt"
+    },
+    {
+      "jobId": 47,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i47.txt",
+      "outFile": "o47.txt"
+    },
+    {
+      "jobId": 48,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i48.txt",
+      "outFile": "o48.txt"
+    },
+    {
+      "jobId": 49,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i49.txt",
+      "outFile": "o49.txt"
+    },
+    {
+      "jobId": 50,
+      "operations": [
+        "Add",
+        "Subtract"
+      ],
+      "inFile": "i50.txt",
+      "outFile": "o50.txt"
+    }
+  ],
+  "logFile": "log.txt",
+  "numberOfThreads": 4
+}
