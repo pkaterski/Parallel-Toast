@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main (main) where
 
@@ -13,8 +12,6 @@ import qualified Data.Text.Read as TR
 import System.Environment (getArgs)
 import Control.Monad.IO.Class()
 import Control.Monad.Trans.Resource (ResourceT)
-import System.IO.Unsafe (unsafePerformIO)
---import qualified Control.Concurrent as Concurrent
 import Control.Concurrent.Async
 import Data.Time.Clock (getCurrentTime, diffUTCTime)
 import Control.Exception
@@ -22,8 +19,6 @@ import Lens.Micro
 import Lens.Micro.TH
 import qualified Data.Aeson as A
 import GHC.Generics
-import qualified Data.ByteString.Lazy as B
-import qualified Data.ByteString.Lazy.Char8 as BL8
 
 
 data Operation = Add | Subtract | Multiply | Divide
@@ -54,10 +49,6 @@ data Job = Job
     } deriving (Show, Generic)
 
 makeLenses ''Job
-
-addUnderscore :: String -> String
-addUnderscore "" = ""
-addUnderscore s  = '_' : s
 
 instance A.FromJSON Job where
     parseJSON = A.genericParseJSON customOptions
@@ -94,10 +85,6 @@ applyOperation op x y = case op of
     Divide   -> if y == 0
                 then Left "Division by zero"
                 else pure $ x / y
-
-myOperations :: [Operation]
-myOperations = cycle [Add, Subtract]
---myOperations = cycle [Add, Subtract, Multiply, Divide]
 
 parseNumber :: Monad m => ConduitT T.Text NumberOrErr m ()
 parseNumber = do
@@ -142,10 +129,6 @@ processRest acc ops = do
                         Right val -> processRest (acc & value .~ Just val ) ops'
                 Nothing -> processRest (acc & value .~ Just num) ops
         Just (Left err) -> processRest (acc & errors %~ (err:)) ops
-
---tasks :: [IO ()]
---tasks =
---    fmap ((\i -> processFile ("i" ++ i ++ ".txt") ("o" ++ i ++ ".txt")) . show) ([1..50] :: [Int])
 
 chunk :: Int -> [a] -> [[a]]
 chunk _ [] = []
