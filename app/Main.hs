@@ -58,7 +58,7 @@ parseNumber = do
                 parseNumber
             Right (num, l) -> do
                 yield $ Right num
-                yield $ Left $ "Failed to parse number: " <> T.unpack txt <> " Error: Leftover: " <> T.unpack l
+                yield $ Left $ "Failed to parse number: " <> T.unpack txt <> " Unparsed Leftover: " <> T.unpack l
                 -- stop the processing
                 pure ()
             Left err -> do
