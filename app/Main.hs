@@ -35,11 +35,24 @@ operations :: [Operation]
 operations = cycle [Add, Subtract]
 --operations = cycle [Add, Subtract, Multiply, Divide]
 
-parseNumber :: MonadFail m => T.Text -> m Double
-parseNumber txt = case TR.double txt of
-    Right (num, "") -> pure num
-    Right (_, l)    -> fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: Leftover: " <> T.unpack l
-    Left err        -> fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: " ++ err
+-- TODO maybe update Result type to have Value, Log and Error???
+parseNumber :: Monad m => ConduitT T.Text Double m ()
+parseNumber = do
+    str <- await
+    case fmap TR.double str of
+        Just (Right (num, "")) -> do
+            yield num
+            parseNumber
+        Just (Right (num, l)) -> do
+            yield num
+            -- TODO log
+            -- fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: Leftover: " <> T.unpack l
+            pure ()
+        Just (Left err) -> do
+            -- TODO log
+            -- fail $ "Failed to parse number: " ++ T.unpack txt ++ " Error: " ++ err
+            pure ()
+        Nothing -> pure ()
 
 processNumbers :: ConduitT Double Void (ResourceT IO) Result
 processNumbers = do
@@ -125,9 +138,8 @@ processFile inputFile outputFile = do
     result <- runConduitRes $
         C.sourceFile inputFile
         .| CT.decodeUtf8
-        -- .| C.concatMap T.words  -- simpler but has a bug
         .| parseWords
-        .| C.mapM parseNumber
+        .| parseNumber
         .| processNumbers
     case result of
         Left err -> putStrLn $ "[ERROR] " ++ err
