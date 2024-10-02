@@ -21,7 +21,6 @@ import Lens.Micro
 data Operation = Add | Subtract | Multiply | Divide
     deriving Show
 
---type Result = Either String Double
 type NumberOrErr = Either String Double
 
 data Result = Result
@@ -50,8 +49,8 @@ operations = cycle [Add, Subtract]
 
 parseNumber :: Monad m => ConduitT T.Text NumberOrErr m ()
 parseNumber = do
-    maybeTxt <- await
-    case maybeTxt of
+    mTxt <- await
+    case mTxt of
         Just txt -> case TR.double txt of
             Right (num, "") -> do
                 yield $ Right num
@@ -89,7 +88,7 @@ processRest acc ops = do
                     case applyOperation op curr num of
                         Left e    -> pure $ acc & errors %~ (e:)
                         Right val -> processRest (acc & value .~ Just val ) ops'
-                Nothing -> processRest (acc & value .~ Just num ) ops
+                Nothing -> processRest (acc & value .~ Just num) ops
         Just (Left err) -> processRest (acc & errors %~ (err:)) ops
 
 tasks :: [IO ()]
@@ -120,8 +119,8 @@ popLast :: [a] -> ([a], Maybe a)
 popLast []     = ([], Nothing)
 popLast (x:[]) = ([], Just x)
 popLast (x:xs) = ((x:xs'), l)
-    where
-        (xs', l) = popLast xs
+  where
+    (xs', l) = popLast xs
 
 -- this parsing handles leftover from the previous stream
 parseWords :: Monad m => ConduitT T.Text T.Text m ()
