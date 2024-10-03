@@ -63,7 +63,7 @@ getConfigPath = do
 
 handleErrs :: TVar Log -> String -> SomeException -> ConduitT i o (ResourceT IO) ()
 handleErrs logVar jobStr e = do
-    let logStr = "[ERROR] Job with ID " <> jobStr <> "was killed by: " <> displayException e
+    let logStr = "[ERROR] Job with ID " <> jobStr <> " was killed by: " <> displayException e
     liftIO $ writeToLog logVar logStr
 
 runJob :: Job -> AppM ()
