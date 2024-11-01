@@ -1,8 +1,10 @@
 # Parralel Toast
 
+TODO add logo
+
 ## Overview
 
-This project is a Haskell application designed for concurrent processing of numerical operations on data streams that are read from files. It uses configuration files to define jobs and supports multi-threaded execution.
+This project is a fun little Haskell application designed for concurrent processing of numerical operations on data streams that are read from files. It uses configuration files to define jobs and supports multi-threaded execution.
 
 ## Features
 
