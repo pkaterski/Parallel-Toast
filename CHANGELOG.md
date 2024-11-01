@@ -1,4 +1,4 @@
-# Changelog for `channable-task`
+# Changelog for `parallel-toast`
 
 All notable changes to this project will be documented in this file.
 
