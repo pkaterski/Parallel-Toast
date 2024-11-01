@@ -3,6 +3,7 @@ module Main (main) where
 import Types
 import Config
 import Streaming
+import Helper
 import Data.Conduit
 import qualified Data.Conduit.Combinators as C
 import qualified Data.Conduit.Text as CT
@@ -25,10 +26,13 @@ main = do
     case mConf of
         Just conf -> do
             logVar           <- newTVarIO []
+            jobQueue         <- newTQueueIO
             jobsStartedVar   <- newTVarIO 0
             jobsComplitedVar <- newTVarIO 0
 
-            let env = Env logVar conf jobsStartedVar jobsComplitedVar
+            atomically $ enqueue jobQueue $ conf ^. jobs
+
+            let env = Env logVar conf jobQueue jobsStartedVar jobsComplitedVar
 
             runReaderT runApp env
             endTime <- getCurrentTime
@@ -45,14 +49,21 @@ main = do
 
         Nothing -> putStrLn "Exiting: Error reading config..."
 
+runWorker :: AppM ()
+runWorker = do
+    jobQueue <- asks envJobQueue
+    mJob <- liftIO $ atomically $ tryReadTQueue jobQueue
+    case mJob of
+        Nothing  -> pure ()
+        Just job -> do
+            runJob job
+            runWorker
+
 runApp :: AppM ()
 runApp = do
     conf <- asks envConfig
-    let batches = getBatches conf
-    mapM_ runBatch batches
-
-runBatch :: [Job] -> AppM ()
-runBatch = mapConcurrently_ runJob
+    let numThreads = conf ^. numberOfThreads
+    mapConcurrently_ id $ replicate numThreads runWorker
 
 getConfigPath :: IO String
 getConfigPath = do

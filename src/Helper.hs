@@ -2,9 +2,11 @@ module Helper
     ( chunk
     , popLast
     , applyOperation
+    , enqueue
     ) where
 
 import Types
+import Control.Concurrent.STM
 
 -- | Splits up a list into chunks of size n
 chunk :: Int -> [a] -> [[a]]
@@ -28,3 +30,9 @@ applyOperation op x y = case op of
     Divide   -> if y == 0
                 then Left "Division by zero"
                 else pure $ x / y
+
+enqueue :: TQueue a -> [a] -> STM () 
+enqueue _ []     = pure ()
+enqueue q (x:xs) = do
+    writeTQueue q x
+    enqueue q xs
