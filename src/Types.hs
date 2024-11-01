@@ -60,6 +60,7 @@ instance A.ToJSON Config where
 data Env = Env
     { envLogVar        :: TVar Log
     , envConfig        :: Config
+    , envJobQueue      :: TQueue Job
     , envJobsStarted   :: TVar Int
     , envJobsCompleted :: TVar Int
     }
