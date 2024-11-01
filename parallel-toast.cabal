@@ -1,14 +1,14 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           parallel-toast
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/Parallel-Toast#readme>
-homepage:       https://github.com/githubuser/Parallel-Toast#readme
-bug-reports:    https://github.com/githubuser/Parallel-Toast/issues
+homepage:       https://github.com/githubuser/parallel-toast#readme
+bug-reports:    https://github.com/githubuser/parallel-toast/issues
 author:         Author name here
 maintainer:     example@example.com
 copyright:      2024 Author name here
@@ -21,7 +21,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/Parallel-Toast
+  location: https://github.com/githubuser/parallel-toast
 
 library
   exposed-modules:
@@ -30,6 +30,8 @@ library
       Streaming
       Types
   other-modules:
+      Paths_parallel_toast
+  autogen-modules:
       Paths_parallel_toast
   hs-source-dirs:
       src
@@ -56,6 +58,8 @@ executable parallel-toast-exe
   main-is: Main.hs
   other-modules:
       Paths_parallel_toast
+  autogen-modules:
+      Paths_parallel_toast
   hs-source-dirs:
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -64,13 +68,13 @@ executable parallel-toast-exe
     , aeson
     , async
     , base >=4.7 && <5
-    , parallel-toast
     , conduit
     , conduit-extra
     , hspec
     , microlens
     , microlens-th
     , mtl
+    , parallel-toast
     , resourcet
     , stm
     , text
@@ -83,6 +87,8 @@ test-suite parallel-toast-test
   main-is: Spec.hs
   other-modules:
       Paths_parallel_toast
+  autogen-modules:
+      Paths_parallel_toast
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
@@ -91,13 +97,13 @@ test-suite parallel-toast-test
     , aeson
     , async
     , base >=4.7 && <5
-    , parallel-toast
     , conduit
     , conduit-extra
     , hspec
     , microlens
     , microlens-th
     , mtl
+    , parallel-toast
     , resourcet
     , stm
     , text
